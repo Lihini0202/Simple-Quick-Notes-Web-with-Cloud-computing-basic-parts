@@ -6,6 +6,17 @@
 
 This project is a high-performance, distraction-free note-taking application designed for academic environments. It leverages **Cloud Computing** principles to provide a stateless, high-availability experience with integrated AI summarization and professional document generation.
 
+## 📺 Video Demo
+Watch the "Academic Suite Pro" in action. This video demonstrates the AI summarization, the "Quick Snippet" sidebar, and the PDF export functionality—all hosted live on AWS.
+
+<div align="center">
+  <video src="assets/demo.mp4" width="800" controls>
+    Your browser does not support the video tag.
+  </video>
+</div>
+
+<img src="assets/shortnote.png" width="400">
+
 ## 🚀 Key Features
 
 * **Glassmorphism UI:** A modern, premium interface using CSS variables and professional typography.
