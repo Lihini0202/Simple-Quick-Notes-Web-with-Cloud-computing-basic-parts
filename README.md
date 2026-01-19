@@ -15,7 +15,6 @@ Watch the "Academic Suite Pro" in action. This video demonstrates the AI summari
   </video>
 </div>
 
-<img src="assets/shortnote.png" width="400">
 
 ## 🚀 Key Features
 
