@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Suite Pro | AWS Cloud Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #6c5ce7; --bg: #f8f9fa; --card-bg: #ffffff; --text: #2d3436; --sidebar: #ffffff;
+        }
+        [data-theme="dark"] {
+            --primary: #a29bfe; --bg: #1e272e; --card-bg: #2f3640; --text: #f5f6fa; --sidebar: #2f3640;
+        }
+
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); height: 100vh; display: flex; transition: 0.3s; }
+
+        /* Sidebar & Sticky Notes */
+        #sidebar {
+            width: 320px; background: var(--sidebar); border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 25px; display: flex; flex-direction: column; gap: 20px; box-shadow: 10px 0 30px rgba(0,0,0,0.05);
+        }
+        .sticky-note {
+            background: #fff9c4; padding: 15px; border-radius: 12px; color: #2d3436;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); transform: rotate(-1deg);
+        }
+        .sticky-note textarea { width: 100%; border: none; background: transparent; resize: none; outline: none; font-size: 0.9rem; }
+
+        /* Main Workspace */
+        #workspace { flex: 1; display: flex; flex-direction: column; padding: 30px; }
+        #glass-editor {
+            background: var(--card-bg); border-radius: 20px; flex: 1; display: flex; flex-direction: column;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1); overflow: hidden;
+        }
+
+        header { padding: 20px 30px; border-bottom: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .controls { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        button {
+            padding: 8px 15px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s;
+            font-size: 0.85rem; display: flex; align-items: center; gap: 5px;
+        }
+        .btn-save { background: #00b894; color: white; }
+        .btn-clear { background: #d63031; color: white; }
+        .btn-ai { background: var(--primary); color: white; }
+        .btn-util { background: #636e72; color: white; }
+
+        textarea#main-pad {
+            flex: 1; padding: 40px; font-size: 1.1rem; line-height: 1.7; border: none; outline: none; background: transparent; color: var(--text); resize: none;
+        }
+
+        footer { padding: 15px 30px; background: rgba(0,0,0,0.03); font-size: 0.75rem; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+
+    <aside id="sidebar">
+        <h2 style="margin:0; font-size: 1.1rem;">Quick Snippets</h2>
+        <button class="btn-ai" onclick="createSticky()">+ New Sticky</button>
+        <div id="sticky-list" style="display:flex; flex-direction:column; gap:15px; overflow-y:auto;"></div>
+        
+        <hr style="width:100%; opacity:0.1;">
+        <h2 style="margin:0; font-size: 1.1rem;">Preferences</h2>
+        <button class="btn-util" onclick="toggleTheme()">🌓 Toggle Dark Mode</button>
+        <button class="btn-util" onclick="insertTimestamp()">📅 Add Timestamp</button>
+    </aside>
+
+    <main id="workspace">
+        <div id="glass-editor">
+            <header>
+                <div>
+                    <h1 style="margin:0; font-size: 1.2rem;">Lecture Notes</h1>
+                    <span id="save-status" style="font-size: 0.7rem; color: #00b894;">● Synced</span>
+                </div>
+                <div class="controls">
+                    <button class="btn-ai" onclick="runAISummary()">✨ AI Summarize</button>
+                    <button class="btn-save" onclick="manualSave()">💾 Save Now</button>
+                    <button class="btn-clear" onclick="clearAll()">🗑️ Reset Page</button>
+                    <button class="btn-util" onclick="generatePDF()">📥 PDF</button>
+                </div>
+            </header>
+
+            <textarea id="main-pad" placeholder="Draft lecture details here..." autofocus></textarea>
+            
+            <footer>
+                <div id="word-count">Words: 0</div>
+                <div>Server: AWS EC2 | DevOps Pipeline Active</div>
+            </footer>
+        </div>
+    </main>
+
+<script>
+    const mainPad = document.getElementById('main-pad');
+    const stickyList = document.getElementById('sticky-list');
+    const status = document.getElementById('save-status');
+
+    // 1. DATA PERSISTENCE
+    function autoSave() {
+        localStorage.setItem('main_notes', mainPad.value);
+        const stickies = Array.from(document.querySelectorAll('.sticky-note textarea')).map(t => t.value);
+        localStorage.setItem('sticky_notes', JSON.stringify(stickies));
+        updateMeta();
+    }
+
+    function manualSave() {
+        autoSave();
+        status.innerText = "● Manually Saved";
+        setTimeout(() => status.innerText = "● Synced", 2000);
+    }
+
+    function clearAll() {
+        if(confirm("Are you sure? This will delete all notes!")) {
+            localStorage.clear();
+            mainPad.value = "";
+            stickyList.innerHTML = "";
+            updateMeta();
+        }
+    }
+
+    // 2. THEME & UTILITIES
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme_pref', next);
+    }
+
+    function insertTimestamp() {
+        const time = new Date().toLocaleString();
+        mainPad.setRangeText(`\n[${time}]\n`, mainPad.selectionStart, mainPad.selectionEnd, 'end');
+        autoSave();
+    }
+
+    function updateMeta() {
+        const words = mainPad.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+        document.getElementById('word-count').innerText = `Words: ${words}`;
+    }
+
+    // 3. AI & PDF
+    async function runAISummary() {
+        const apiKey = "OPENROUTER_KEY_PLACEHOLDER"; 
+        if (!mainPad.value) return alert("Write something first!");
+        try {
+            const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    model: "google/gemini-2.0-flash-001",
+                    messages: [{ role: "user", content: `Summarize this: ${mainPad.value}` }]
+                })
+            });
+            const data = await res.json();
+            mainPad.value = `AI SUMMARY:\n${data.choices[0].message.content}\n\n${mainPad.value}`;
+            autoSave();
+        } catch (e) { alert("AI requires GitHub Secret deployment."); }
+    }
+
+    function generatePDF() {
+        html2pdf().from(document.getElementById('glass-editor')).save('Lecture_Notes.pdf');
+    }
+
+    function createSticky(content = "") {
+        const div = document.createElement('div');
+        div.className = 'sticky-note';
+        div.innerHTML = `<textarea rows="4">${content}</textarea>`;
+        stickyList.prepend(div);
+        div.querySelector('textarea').addEventListener('input', autoSave);
+    }
+
+    window.onload = () => {
+        mainPad.value = localStorage.getItem('main_notes') || "";
+        const stickies = JSON.parse(localStorage.getItem('sticky_notes') || "[]");
+        stickies.forEach(s => createSticky(s));
+        const savedTheme = localStorage.getItem('theme_pref') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateMeta();
+        mainPad.addEventListener('input', autoSave);
+    };
+</script>
+</body>
+</html>
