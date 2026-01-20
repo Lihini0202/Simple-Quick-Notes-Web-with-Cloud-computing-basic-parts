@@ -11,7 +11,7 @@ Experience the full workflow of the **Academic Suite Pro**, including real-time 
 
 <div align="center">
   <a href="https://youtu.be/inZwOIxI-1Y">
-    <img src="https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg" alt="Watch the Demo Video" width="800" style="border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+    <img src="https://img.youtube.com/vi/inZwOIxI-1Y/maxresdefault.jpg" alt="Watch the Demo Video" width="800" style="border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
   </a>
   <p><em>Click the image above to watch the demo on YouTube</em></p>
 </div>
